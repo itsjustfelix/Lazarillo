@@ -18,7 +18,8 @@ enum Cercania {
   final String texto;
 }
 
-/// Un objeto encontrado en la imagen.
+/// Esste modelo representa un objeto detectado en la imagen, con su clase,
+///  etiqueta, confianza y caja delimitadora normalizada.
 class Deteccion {
   const Deteccion({
     required this.claseId,

@@ -3,8 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api_config.dart';
 import '../core/api_exception.dart';
 
-/// Aísla el paquete google_sign_in. Si cambia de versión, solo se toca
-/// este archivo. Escrito para google_sign_in 6.x.
+///Abre la ventana de Google para que la persona elija su cuenta y devuelve el id_token
 class GoogleTokenProvider {
   GoogleTokenProvider({GoogleSignIn? google})
     : _google =
@@ -18,7 +17,7 @@ class GoogleTokenProvider {
 
   final GoogleSignIn _google;
 
-  /// Abre la ventana de Google y devuelve el id_token.
+  /// Abre la ventana de Google y devuelve el id_token o un null.
   Future<String> obtenerIdToken() async {
     final cuenta = await _google.signIn();
     if (cuenta == null) {

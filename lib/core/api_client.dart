@@ -21,6 +21,9 @@ class ApiClient {
   final TokenReader _leerToken;
   final http.Client _client;
 
+  /// Esta funcion se utliza para envia un JSON al backend al momento de iniciar sesion
+  /// para verificar que el JWT que retorna Google sea valido y devuelve
+  /// un JWT propio del backend y el nombre del usuario.
   Future<Map<String, dynamic>> postJson(
     String ruta,
     Map<String, dynamic> cuerpo,
@@ -34,6 +37,9 @@ class ApiClient {
     );
   }
 
+  /// Esta funcion se utliza para enviar un JSON al backend con la foto,
+  /// el JWT para, verificar primeramente si el usuario esta autenticado
+  /// y luego describe la foto y devuelve un JSON con el resultado de la descripcion.
   Future<Map<String, dynamic>> postArchivoAutenticado(
     String ruta, {
     required String campo,
@@ -58,8 +64,14 @@ class ApiClient {
     });
   }
 
+  ///Esta funcion flecha es para cear la uri del backend conectando la ruta base
+  ///(fue la que se pasa al momento de hacer el  build con --define) con la ruta
+  ///que se le pasa a la funcion, para que el backend pueda recibir la peticion en la ruta correcta.
   Uri _uri(String ruta) => Uri.parse('${ApiConfig.baseUrl}$ruta');
 
+  ///Esta funcion es la encargada de ejecutar la peticion al backend y manejar
+  ///los errores de conexion, tiempo agotado y errores del cliente HTTP, lanzando
+  ///las excepciones correspondientes.
   Future<Map<String, dynamic>> _ejecutar(
     Future<http.Response> Function() peticion,
   ) async {
@@ -75,6 +87,9 @@ class ApiClient {
     }
   }
 
+  ///Esta funcion es la encargada de procesar la respuesta del backend, verificando
+  ///el codigo de estado de la respuesta y si es valido decodifica el cuerpo de
+  /// la respuesta y lo retorna como un Map<String, dynamic> para que pueda ser utilizado por los services.
   Map<String, dynamic> _procesar(http.Response respuesta) {
     final codigo = respuesta.statusCode;
 
