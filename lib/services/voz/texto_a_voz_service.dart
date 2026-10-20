@@ -30,6 +30,7 @@ class TextoAVozService {
       await _tts.stop();
     }
     await _tts.speak(texto);
+    await _tts.stop();
   }
 
   /// Lee un texto largo por partes. Termina al acabar el texto o cuando
