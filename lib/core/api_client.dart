@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_initializing_formals
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -14,12 +16,10 @@ typedef TokenReader = Future<String?> Function();
 /// Se encarga de: URL base, header de autenticación, timeout y traducir
 /// los fallos a [ApiException]. Los services solo piden datos.
 class ApiClient {
-  ApiClient({required TokenReader leerToken, http.Client? client})
-    : _leerToken = leerToken,
-      _client = client ?? http.Client();
+  ApiClient({required TokenReader leerToken}) : _leerToken = leerToken;
 
   final TokenReader _leerToken;
-  final http.Client _client;
+  final http.Client _client = http.Client();
 
   /// Esta funcion se utliza para envia un JSON al backend al momento de iniciar sesion
   /// para verificar que el JWT que retorna Google sea valido y devuelve

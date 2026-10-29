@@ -35,6 +35,9 @@ class Deteccion {
   /// Caja normalizada: todos los valores van de 0 a 1 respecto a la imagen.
   final Rect caja;
 
+  ///funcion que devuelve la posicion horizontal del objeto detectado
+  ///se utiliza el get para que se pueda acceder a la funcion como si fuera una
+  /// propiedad de la clase
   PosicionHorizontal get posicion {
     final x = caja.center.dx;
     if (x < 0.4) return PosicionHorizontal.izquierda;
