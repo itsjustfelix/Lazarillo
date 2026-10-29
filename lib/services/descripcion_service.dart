@@ -1,7 +1,8 @@
 import '../core/api_client.dart';
 import '../models/descripcion_response.dart';
 
-/// Caso de uso: describir una foto para la persona.
+/// Hace la peticion al backend para describir la escena de la foto y
+/// devuelve el texto listo para leerse en voz alta.
 class DescripcionService {
   DescripcionService(this._api);
 

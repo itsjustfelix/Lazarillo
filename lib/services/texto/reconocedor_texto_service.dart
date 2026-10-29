@@ -9,13 +9,13 @@ class TextoException implements Exception {
   String toString() => message;
 }
 
-/// Extrae el texto de una foto con Google ML Kit (en el teléfono, sin internet).
+/// Extrae el texto de una foto con Google ML Kit
 class ReconocedorTextoService {
-  ReconocedorTextoService([TextRecognizer? reconocedor])
-    : _reconocedor =
-          reconocedor ?? TextRecognizer(script: TextRecognitionScript.latin);
+  ReconocedorTextoService();
 
-  final TextRecognizer _reconocedor;
+  final TextRecognizer _reconocedor = TextRecognizer(
+    script: TextRecognitionScript.latin,
+  );
 
   // Palabra cortada con guion al final de una línea: "pala-\nbra" -> "palabra".
   static final _guionDeFinDeLinea = RegExp(

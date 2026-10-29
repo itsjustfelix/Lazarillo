@@ -1,10 +1,10 @@
-import 'dart:ui' show Rect;
+// ignore_for_file: unnecessary_import
 
+import 'dart:ui' show Rect;
 import 'package:camera/camera.dart';
 import 'package:flutter_litert/flutter_litert.dart'
     show detectionSize, rotationForFrame;
 import 'package:object_detection/object_detection.dart';
-
 import '../../core/etiquetas_coco.dart';
 import '../../models/deteccion.dart';
 

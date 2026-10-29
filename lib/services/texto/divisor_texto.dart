@@ -1,5 +1,5 @@
 /// Parte un texto largo en trozos que el lector de voz pueda decir.
-/// Android rechaza textos de más de ~4000 caracteres en una sola lectura.
+/// Android rechaza textos de más de 4000 caracteres en una sola lectura.
 abstract final class DivisorTexto {
   static List<String> dividir(String texto, {int maximo = 1500}) {
     // Se corta al final de cada frase o línea, para no partir a media frase.

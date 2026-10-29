@@ -53,7 +53,12 @@ class BuscadorObjetoService {
     _camara = null;
     _guia = null;
     if (camara != null && camara.value.isStreamingImages) {
-      await camara.stopImageStream();
+      try {
+        await camara.stopImageStream();
+      } on CameraException {
+        // La cámara ya se cerró (por ejemplo, al salir de la app): no hay
+        // video que detener.
+      }
     }
   }
 

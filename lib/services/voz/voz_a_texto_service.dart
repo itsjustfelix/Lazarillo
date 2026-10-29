@@ -17,15 +17,20 @@ class VozATextoService {
 
   final SpeechToText _stt;
   Completer<String>? _pendiente;
-  Timer? _timerLimite;
   bool _listo = false;
   String? _idioma;
 
+  /// Lo último que se entendió, aunque todavía no sea el resultado final.
   String _ultimasPalabras = '';
+
+  /// Último error que reportó el motor de voz (null si no hubo).
+  String? _errorDeEscucha;
+
+  DateTime _inicioEscucha = DateTime.fromMillisecondsSinceEpoch(0);
 
   /// Pide el permiso de micrófono y prepara el reconocimiento.
   Future<void> iniciar() async {
-    if (_listo && _stt.isAvailable) return;
+    if (_listo) return;
 
     _listo = await _stt.initialize(
       onError: (error) => _alFallar(error.errorMsg),
@@ -41,98 +46,148 @@ class VozATextoService {
     debugPrint('Voz: idioma de reconocimiento = $_idioma');
   }
 
-  /// Escucha una frase y devuelve lo que entendió.
-  /// Devuelve texto vacío si no oyó nada tras los 3 segundos.
-  Future<String> escuchar() async {
+  /// Escucha durante una ventana FIJA y devuelve lo que se dijo en ella.
+  ///
+  /// Secuencia: [esperaAntes] -> se abre el micrófono (se llama a [alAbrir])
+  /// -> se escucha exactamente [ventana] -> se cierra el micrófono -> se
+  /// devuelve lo entendido. Si no se dijo nada, devuelve texto vacío.
+  ///
+  /// A diferencia de [escuchar], no termina antes aunque la persona calle o
+  /// el motor crea que ya acabó: siempre se espera la ventana completa.
+  Future<String> escucharVentana({
+    Duration ventana = const Duration(seconds: 3),
+    Duration esperaAntes = const Duration(milliseconds: 250),
+    VoidCallback? alAbrir,
+  }) async {
     await iniciar();
+    // Pausa corta para no captar la cola de la voz de la propia app.
+    await Future<void>.delayed(esperaAntes);
 
-    // Limpiar cualquier sesión anterior que haya quedado colgada
-    if (_stt.isListening) {
-      await _stt.stop();
-      await Future.delayed(const Duration(milliseconds: 200));
-    }
-
+    _pendiente = null; // aquí no se espera un Completer: se espera la ventana
     _ultimasPalabras = '';
-    final pendiente = _pendiente = Completer<String>();
+    _errorDeEscucha = null;
+    _inicioEscucha = DateTime.now();
 
-    // Escuchar limpio (deja que Android use los defaults nativos del micro)
     await _stt.listen(
+      localeId: _idioma,
+      // El micrófono lo cierra esta función al acabar la ventana, no el
+      // motor: por eso se le da un margen mayor, para que no corte antes.
+      listenFor: ventana + const Duration(seconds: 2),
+      pauseFor: ventana + const Duration(seconds: 2),
+      listenOptions: SpeechListenOptions(
+        partialResults: true, // se guarda lo que se va entendiendo
+        cancelOnError: true,
+      ),
       onResult: (resultado) {
         _ultimasPalabras = resultado.recognizedWords;
         debugPrint(
           'Voz: "${resultado.recognizedWords}" '
           '(final: ${resultado.finalResult})',
         );
-        if (resultado.finalResult) {
-          _completar(pendiente, _ultimasPalabras);
-        }
       },
+    );
+    alAbrir?.call(); // aviso de "ya puedes hablar" (por ejemplo, vibración)
+
+    await Future<void>.delayed(ventana);
+    await _stt.stop();
+    // El resultado final llega un instante después de pedir que se detenga.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    final palabras = _ultimasPalabras.trim();
+    if (palabras.isEmpty && _esErrorReal(_errorDeEscucha)) {
+      throw const VozException('No pude usar el micrófono. Intenta de nuevo.');
+    }
+    return palabras;
+  }
+
+  /// Escucha una frase y termina cuando el motor decide que acabó.
+  /// Devuelve texto vacío si no oyó nada.
+  ///
+  /// [esperaAntes]: pausa antes de abrir el micrófono.
+  /// [maximo]: duración máxima de la escucha.
+  /// [pausaParaTerminar]: silencio que se tolera antes de darse por vencido.
+  Future<String> escuchar({
+    Duration esperaAntes = const Duration(milliseconds: 800),
+    Duration maximo = const Duration(seconds: 10),
+    Duration pausaParaTerminar = const Duration(seconds: 4),
+  }) async {
+    await iniciar();
+    await Future<void>.delayed(esperaAntes);
+
+    _ultimasPalabras = '';
+    final pendiente = _pendiente = Completer<String>();
+    _inicioEscucha = DateTime.now();
+
+    await _stt.listen(
+      localeId: _idioma,
+      listenFor: maximo,
+      pauseFor: pausaParaTerminar,
       listenOptions: SpeechListenOptions(
         partialResults: true,
-        cancelOnError: false,
+        cancelOnError: true,
       ),
+      onResult: (resultado) {
+        _ultimasPalabras = resultado.recognizedWords;
+        debugPrint(
+          'Voz: "${resultado.recognizedWords}" '
+          '(final: ${resultado.finalResult})',
+        );
+        if (resultado.finalResult) _completar(pendiente, _ultimasPalabras);
+      },
     );
 
-    // Temporizador de 3 segundos exactos controlado por Flutter
-    _timerLimite?.cancel();
-    _timerLimite = Timer(const Duration(seconds: 3), () async {
-      if (!pendiente.isCompleted) {
-        await _stt.stop();
-        _completar(pendiente, _ultimasPalabras);
-      }
-    });
-
-    return pendiente.future;
+    // Red de seguridad por si ningún evento llega a avisar.
+    return pendiente.future.timeout(
+      maximo + const Duration(seconds: 3),
+      onTimeout: () {
+        _stt.stop();
+        return _ultimasPalabras.trim();
+      },
+    );
   }
 
-  Future<void> detener() async {
-    _timerLimite?.cancel();
-    if (_stt.isListening) {
-      await _stt.stop();
-    }
-  }
-
-  Future<void> cancelar() async {
-    _timerLimite?.cancel();
-    await _stt.cancel();
-  }
+  Future<void> cancelar() => _stt.cancel();
 
   void _alCambiarEstado(String estado) {
     debugPrint('Voz: estado "$estado"');
-    // Si el estado indica que el micrófono se apagó (por pausa o tiempo)
-    if (estado == SpeechToText.doneStatus ||
-        estado == SpeechToText.notListeningStatus) {
-      final pendiente = _pendiente;
-      // Pequeño margen por si el último fragmento de voz viene en camino
-      Future.delayed(
-        const Duration(milliseconds: 200),
-        () => _completar(pendiente, _ultimasPalabras),
-      );
-    }
+    if (estado != SpeechToText.doneStatus) return;
+
+    // Un "done" justo al abrir el micrófono es residuo de la sesión anterior.
+    final desdeElInicio = DateTime.now().difference(_inicioEscucha);
+    if (desdeElInicio < const Duration(milliseconds: 500)) return;
+
+    // Margen por si el resultado final llega un instante después del aviso.
+    final pendiente = _pendiente;
+    Future<void>.delayed(
+      const Duration(milliseconds: 400),
+      () => _completar(pendiente, _ultimasPalabras),
+    );
   }
 
   void _alFallar(String mensaje) {
-    debugPrint('Voz: error nativo "$mensaje"');
+    debugPrint('Voz: error "$mensaje"');
+    _errorDeEscucha = mensaje;
+
     final pendiente = _pendiente;
     if (pendiente == null || pendiente.isCompleted) return;
 
-    // Solo se lanza excepción si falla el hardware/permisos.
-    // Si es silencio, timeout o no-match, se trata como respuesta vacía.
-    final esErrorHardware =
-        mensaje.toLowerCase().contains('permission') ||
-        mensaje.toLowerCase().contains('insufficient');
-
-    if (esErrorHardware) {
+    // Silencio o nada entendido: no es un fallo, solo no se oyó nada.
+    if (!_esErrorReal(mensaje)) {
+      _completar(pendiente, _ultimasPalabras);
+    } else {
       pendiente.completeError(
         const VozException('No pude usar el micrófono. Intenta de nuevo.'),
       );
-    } else {
-      _completar(pendiente, _ultimasPalabras);
     }
   }
 
+  /// "no_match" y "speech_timeout" solo significan que no se oyó nada.
+  bool _esErrorReal(String? mensaje) =>
+      mensaje != null &&
+      !mensaje.contains('no_match') &&
+      !mensaje.contains('speech_timeout');
+
   void _completar(Completer<String>? pendiente, String texto) {
-    _timerLimite?.cancel();
     if (pendiente != null && !pendiente.isCompleted) {
       pendiente.complete(texto.trim());
     }
@@ -150,6 +205,6 @@ class VozATextoService {
     for (final idioma in idiomas) {
       if (limpiar(idioma.localeId).startsWith('es')) return idioma.localeId;
     }
-    return null;
+    return null; // usa el idioma del teléfono
   }
 }

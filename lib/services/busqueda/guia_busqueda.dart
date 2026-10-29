@@ -39,7 +39,6 @@ class GuiaBusqueda {
   /// true cuando la persona ya llegó al objeto.
   bool get terminado => _terminado;
 
-  /// [deteccion]: el objeto buscado en este fotograma, o null si no apareció.
   /// Devuelve una instrucción solo si hay algo nuevo que decir.
   Instruccion? evaluar(Deteccion? deteccion, DateTime ahora) {
     if (_terminado) return null;
@@ -62,7 +61,9 @@ class GuiaBusqueda {
     return _instruccion(observado);
   }
 
-  /// Qué situación se observa en este fotograma (null = aún no se sabe).
+  /// Observa un fotograma y devuelve la instrucción correspondiente
+  /// (girar izquierda, derecha, al frente, no lo veo), un "no lo veo" si
+  /// no se puede determinar o un null para que no dega nada la app todavia.
   TipoInstruccion? _observar(Deteccion? deteccion) {
     if (deteccion == null) {
       _fotogramasSinVerlo++;
@@ -75,6 +76,8 @@ class GuiaBusqueda {
     return _clasificar(deteccion);
   }
 
+  ///Clacifica en que parte de la pantalla esta en objeto y dependiendo de eso
+  ///le dice a la persona que gire hacia la izquierda o hacia la derecha o que siga al frente.
   TipoInstruccion _clasificar(Deteccion d) {
     switch (d.posicion) {
       case PosicionHorizontal.izquierda:
@@ -90,6 +93,9 @@ class GuiaBusqueda {
     }
   }
 
+  /// Si el tipo de insrtrucion es la misma que la anterior, se aumenta el
+  /// contador de repeticiones, si es diferente se reinicia el contador y
+  /// se guarda el nuevo tipo de instruccion.
   void _contar(TipoInstruccion observado) {
     if (observado == _candidato) {
       _repeticiones++;
@@ -99,6 +105,8 @@ class GuiaBusqueda {
     }
   }
 
+  ///Calcula si toca hablar o no, dependiendo de la ultima vez que se hablo y el
+  ///tipo de instruccion que se esta evaluando.
   bool _tocaHablar(TipoInstruccion observado, DateTime ahora) {
     final ultima = _ultimaVez;
     if (ultima == null) return true;
@@ -113,6 +121,7 @@ class GuiaBusqueda {
     return cambioLaSituacion || transcurrido >= intervalo;
   }
 
+  /// Devuelve la instrucción lista para leer en voz alta, según el tipo de instrucción que se le pase.
   Instruccion _instruccion(TipoInstruccion tipo) {
     final texto = switch (tipo) {
       TipoInstruccion.noLoVeo => 'No veo $nombreObjeto. Gira despacio.',
