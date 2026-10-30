@@ -1,4 +1,3 @@
-/// Error con un mensaje pensado para ser leído en voz alta al usuario.
 class ApiException implements Exception {
   const ApiException(this.message, {this.statusCode});
 
@@ -17,4 +16,8 @@ class ApiException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class InicioCancelado implements Exception {
+  const InicioCancelado();
 }
