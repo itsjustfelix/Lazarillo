@@ -4,8 +4,6 @@ import '../core/api_config.dart';
 import '../core/api_exception.dart';
 import '../models/credencial_google.dart';
 
-///Abre la ventana de Google para que la persona elija su cuenta y devuelve
-///el id_token junto con la foto de la cuenta.
 class GoogleTokenProvider {
   GoogleTokenProvider();
 
@@ -16,12 +14,10 @@ class GoogleTokenProvider {
         : ApiConfig.googleServerClientId,
   );
 
-  /// Abre la ventana de Google y devuelve el id_token y la foto de la cuenta.
-  /// Lanza [ApiException] si la persona cancela o si Google no da el token.
   Future<CredencialGoogle> obtenerCredencial() async {
     final cuenta = await _google.signIn();
     if (cuenta == null) {
-      throw const ApiException('Inicio de sesión cancelado.');
+      throw const InicioCancelado();
     }
 
     final idToken = (await cuenta.authentication).idToken;
@@ -33,8 +29,6 @@ class GoogleTokenProvider {
     return CredencialGoogle(idToken: idToken, fotoUrl: cuenta.photoUrl);
   }
 
-  /// Cierra la sesión de Google para que la proxima vez que se abra la ventana
-  ///  de Google, la persona tenga que elegir su cuenta y no se inicie sesión automáticamente.
   Future<void> cerrarSesion() async {
     try {
       await _google.signOut();
