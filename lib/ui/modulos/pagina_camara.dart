@@ -1,6 +1,5 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-
 import '../tema.dart';
 import 'camara_pantalla_completa.dart';
 
@@ -15,18 +14,9 @@ class PaginaCamara extends StatelessWidget {
   });
 
   final CameraController camara;
-
-  /// Lo que lee el lector de pantalla (TalkBack) para este módulo.
   final String etiqueta;
-
-  /// La acción del módulo (se ejecuta con doble toque).
   final VoidCallback alActivar;
-
-  /// Muestra un indicador de carga sobre la cámara.
   final bool ocupado;
-
-  /// Texto opcional sobre la cámara (por ejemplo, un error para quien
-  /// desarrolla).
   final String? mensaje;
 
   @override
@@ -36,8 +26,6 @@ class PaginaCamara extends StatelessWidget {
     return Semantics(
       button: true,
       label: etiqueta,
-      // Con TalkBack activado, su propio doble toque llega aquí como
-      // "activar". Sin TalkBack, lo recoge el GestureDetector de abajo.
       onTap: alActivar,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
