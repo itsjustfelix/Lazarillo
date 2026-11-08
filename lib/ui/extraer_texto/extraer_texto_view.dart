@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +10,6 @@ import '../modulos/pagina_camara.dart';
 
 enum _Estado { listo, procesando, leyendo }
 
-/// Módulo de la derecha: lee en voz alta el texto que ve la cámara.
 class ExtraerTextoView extends StatefulWidget {
   const ExtraerTextoView({
     super.key,
@@ -18,8 +18,6 @@ class ExtraerTextoView extends StatefulWidget {
   });
 
   final Dependencias dependencias;
-
-  /// Cámara ya abierta, prestada por ModulosView.
   final CameraController camara;
 
   @override
@@ -31,12 +29,11 @@ class _ExtraerTextoViewState extends State<ExtraerTextoView> {
   _Estado _estado = _Estado.listo;
 
   Dependencias get _d => widget.dependencias;
-
+  XFile? foto;
   void _cambiarEstado(_Estado nuevo) {
     if (mounted) setState(() => _estado = nuevo);
   }
 
-  /// Un doble toque lee el texto; si ya está leyendo, lo detiene.
   Future<void> _alActivar() async {
     switch (_estado) {
       case _Estado.procesando:
@@ -54,12 +51,11 @@ class _ExtraerTextoViewState extends State<ExtraerTextoView> {
   Future<void> _leerTexto() async {
     _cambiarEstado(_Estado.procesando);
     try {
-      final foto = await widget.camara.takePicture();
-      // Sin await: se avisa mientras el texto se analiza.
+      foto = await widget.camara.takePicture();
       unawaited(_d.voz.hablar('Leyendo la imagen.'));
 
-      final texto = await _reconocedor.extraerDeArchivo(foto.path);
-      if (!mounted) return; // la persona se fue a otro módulo
+      final texto = await _reconocedor.extraerDeArchivo(foto!.path);
+      if (!mounted) return;
 
       if (texto.isEmpty) {
         await _d.voz.hablar(
@@ -78,7 +74,17 @@ class _ExtraerTextoViewState extends State<ExtraerTextoView> {
         await _d.voz.hablar('Ocurrió un error inesperado. Intenta de nuevo.');
       }
     } finally {
+      if (foto != null) {
+        await _eliminarArchivoFoto(foto!.path);
+      }
       _cambiarEstado(_Estado.listo);
+    }
+  }
+
+  Future<void> _eliminarArchivoFoto(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
     }
   }
 

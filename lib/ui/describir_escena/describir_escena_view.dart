@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -30,21 +31,18 @@ class _DescribirEscenaViewState extends State<DescribirEscenaView> {
   bool _procesando = false;
 
   Dependencias get _d => widget.dependencias;
-
+  XFile? foto;
   Future<void> _describir() async {
     if (_procesando) return;
 
     setState(() => _procesando = true);
     try {
-      final foto = await widget.camara.takePicture();
-      // Sin await: se dice "Analizando" mientras la foto viaja al servidor.
+      foto = await widget.camara.takePicture();
       unawaited(_d.voz.hablar('Analizando.'));
 
-      // Mientras el servidor responde, el teléfono da pulsos suaves.
       final texto = await _conPulsosDeEspera(
-        () => _d.descripcion.describirEscena(foto.path),
+        () => _d.descripcion.describirEscena(foto!.path),
       );
-      // Si la persona ya se fue a otro módulo, no se lee la descripción.
       if (!mounted) return;
       await _d.voz.hablar(texto);
     } on ApiException catch (e) {
@@ -58,19 +56,26 @@ class _DescribirEscenaViewState extends State<DescribirEscenaView> {
       if (!mounted) return;
       await _d.voz.hablar('Ocurrió un error inesperado. Intenta de nuevo.');
     } finally {
+      if (foto != null) {
+        await _eliminarArchivoFoto(foto!.path);
+      }
       if (mounted) setState(() => _procesando = false);
     }
   }
 
-  /// Da pulsos mientras [espera] no termina y los corta en cuanto termina,
-  /// sea porque llegó la respuesta o porque falló. Los pulsos se paran ANTES
-  /// de que la voz lea la descripción, no después.
   Future<T> _conPulsosDeEspera<T>(Future<T> Function() espera) async {
     unawaited(_d.vibracion.pulsarEnEspera());
     try {
       return await espera();
     } finally {
       unawaited(_d.vibracion.detener());
+    }
+  }
+
+  Future<void> _eliminarArchivoFoto(String path) async {
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
     }
   }
 
