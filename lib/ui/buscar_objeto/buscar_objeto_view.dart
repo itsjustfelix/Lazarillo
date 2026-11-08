@@ -12,7 +12,6 @@ import '../../services/deteccion/resolutor_objeto.dart';
 import '../../services/voz/voz_a_texto_service.dart';
 import '../modulos/pagina_camara.dart';
 
-/// Módulo de la izquierda: busca un objeto y guía con la voz.
 class BuscarObjetoView extends StatefulWidget {
   const BuscarObjetoView({
     super.key,
@@ -21,8 +20,6 @@ class BuscarObjetoView extends StatefulWidget {
   });
 
   final Dependencias dependencias;
-
-  /// Cámara ya abierta, prestada por ModulosView.
   final CameraController camara;
 
   @override
@@ -32,8 +29,8 @@ class BuscarObjetoView extends StatefulWidget {
 class _BuscarObjetoViewState extends State<BuscarObjetoView> {
   BuscadorObjetoService? _buscador;
   StreamSubscription<Instruccion>? _suscripcion;
-  bool _ocupado = false; // true mientras pregunta y escucha el objeto
-  String? _error; // detalle técnico del fallo, para quien desarrolla
+  bool _ocupado = false;
+  String? _error;
 
   Dependencias get _d => widget.dependencias;
 
@@ -45,12 +42,10 @@ class _BuscarObjetoViewState extends State<BuscarObjetoView> {
 
   Future<void> _preparar() async {
     try {
-      // El detector se carga una sola vez y se reutiliza entre visitas.
       final detector = await _d.obtenerDetector();
       if (!mounted) return;
 
       final buscador = BuscadorObjetoService(detector: detector);
-      // Cada instrucción nueva se dice en voz alta, cortando la anterior.
       _suscripcion = buscador.instrucciones.listen(
         (instruccion) => _d.voz.hablar(instruccion.texto),
         onError: (_) => _d.voz.hablar('Hubo un problema con la búsqueda.'),
@@ -63,15 +58,11 @@ class _BuscarObjetoViewState extends State<BuscarObjetoView> {
     }
   }
 
-  /// La persona oye un mensaje simple; el detalle técnico queda en
-  /// pantalla y en la terminal para poder corregirlo.
   Future<void> _mostrarError(String detalle) async {
-    debugPrint('BuscarObjeto: $detalle');
     if (mounted) setState(() => _error = detalle);
     await _d.voz.hablar('No pude preparar la búsqueda de objetos.');
   }
 
-  /// Un doble toque inicia la búsqueda; otro doble toque la detiene.
   Future<void> _alActivar() async {
     if (_ocupado) return;
 
@@ -90,11 +81,9 @@ class _BuscarObjetoViewState extends State<BuscarObjetoView> {
     _ocupado = true;
     try {
       final claseId = await _preguntarObjeto();
-      // Si la persona se fue a otro módulo mientras hablaba, no se empieza.
       if (claseId == null || !mounted) return;
 
       final nombre = EtiquetasCoco.espanol[claseId];
-      // Se empieza a analizar de inmediato y el aviso se dice sin esperar.
       await buscador.iniciar(
         camara: widget.camara,
         claseId: claseId,
@@ -108,22 +97,15 @@ class _BuscarObjetoViewState extends State<BuscarObjetoView> {
     }
   }
 
-  /// Pregunta qué objeto busca y devuelve su id, o null si no se entendió.
-  /// Si no lo oye o no lo reconoce, lo intenta una segunda vez sin pedir
-  /// otro toque.
   Future<int?> _preguntarObjeto() async {
     var pregunta = 'Di qué quieres buscar.';
 
     for (var intento = 1; intento <= 2; intento++) {
       await _d.voz.hablar(pregunta);
-
-      // Al terminar de hablar: el micrófono se abre, vibra una vez para
-      // avisar, escucha 3 segundos exactos y se cierra. Recién ahí se procesa.
       final frase = await _d.escucha.escucharVentana(
         ventana: const Duration(seconds: 3),
         alAbrir: _d.vibracion.avisar,
       );
-      debugPrint('Objeto dicho: "$frase"');
 
       if (frase.isEmpty) {
         pregunta = 'No te escuché. Dime de nuevo qué quieres buscar.';
@@ -145,8 +127,6 @@ class _BuscarObjetoViewState extends State<BuscarObjetoView> {
   @override
   void dispose() {
     _suscripcion?.cancel();
-    // Solo se cierra el buscador: la cámara y el detector no son de esta
-    // pantalla (los presta ModulosView y los comparte Dependencias).
     final buscador = _buscador;
     if (buscador != null) unawaited(buscador.cerrar());
     super.dispose();
