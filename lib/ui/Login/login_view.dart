@@ -24,6 +24,8 @@ class _LoginViewState extends State<LoginView> {
   static const _acercarNombre = 26.0;
 
   bool _entrando = false;
+  // Solo mostramos el progreso al terminar correctamente el selector de Google.
+  bool _procesandoSesion = false;
   String? _error;
   Timer? _temporizadorError;
 
@@ -35,7 +37,13 @@ class _LoginViewState extends State<LoginView> {
     setState(() {});
 
     try {
-      await widget.auth.loginConGoogle();
+      await widget.auth.loginConGoogle(
+        alObtenerCredencial: () {
+          // Google ya devolvió la credencial; ahora se autentica en el backend.
+          if (mounted) setState(() => _procesandoSesion = true);
+        },
+      );
+      if (!mounted) return;
       widget.onLogin();
     } on InicioCancelado {
       // El usuario canceló el inicio de sesión.
@@ -45,6 +53,7 @@ class _LoginViewState extends State<LoginView> {
       _mostrarError('No pude iniciar sesión. Intenta de nuevo.');
     } finally {
       _entrando = false;
+      _procesandoSesion = false;
       if (mounted) setState(() {});
     }
   }
@@ -137,26 +146,48 @@ class _LoginViewState extends State<LoginView> {
               Semantics(
                 button: true,
                 liveRegion: true,
-                label: _entrando
+                label: _procesandoSesion
                     ? 'Iniciando sesión, espera un momento'
                     : 'Iniciar sesión con Google',
                 child: SizedBox(
                   height: 72,
                   child: ElevatedButton(
-                    onPressed: _entrar,
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconoGoogle(tamano: 28),
-                        SizedBox(width: 12),
-                        Text(
-                          'Entrar con Google',
-                          style: TextStyle(
-                            fontSize: 22,
-                            color: ColoresApp.fondoMensaje,
+                    // Evita repetir el login, pero conserva la G mientras Google
+                    // muestra la selección de cuenta o si se cancela.
+                    onPressed: _entrando ? null : _entrar,
+                    style: ElevatedButton.styleFrom(
+                      disabledBackgroundColor: ColoresApp.blanco,
+                      disabledForegroundColor: ColoresApp.fondoMensaje,
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Row(
+                        key: ValueKey<bool>(_procesandoSesion),
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_procesandoSesion)
+                            const SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                color: ColoresApp.primario,
+                              ),
+                            )
+                          else
+                            const IconoGoogle(tamano: 28),
+                          const SizedBox(width: 12),
+                          Text(
+                            _procesandoSesion
+                                ? 'Iniciando sesión...'
+                                : 'Entrar con Google',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              color: ColoresApp.fondoMensaje,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

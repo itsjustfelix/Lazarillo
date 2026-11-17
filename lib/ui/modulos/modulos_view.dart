@@ -68,6 +68,7 @@ class _ModulosViewState extends State<ModulosView> {
   );
   CameraController? _camara;
   int _indice = _paginaInicial;
+  late final LogoPerfil _logoPerfil;
 
   Dependencias get _d => widget.dependencias;
 
@@ -77,6 +78,11 @@ class _ModulosViewState extends State<ModulosView> {
     // Si la cámara llegó abierta desde el arranque, se ve desde el primer
     // fotograma, sin esperar a que la voz termine de configurarse.
     _camara = widget.camaraInicial;
+    // Mantener el mismo widget y Future evita recargar la foto en cada swipe.
+    _logoPerfil = LogoPerfil(
+      alMantener: _abrirPerfil,
+      fotoUrl: _d.auth.obtenerFotoUrl(),
+    );
     _iniciar();
   }
 
@@ -173,10 +179,7 @@ class _ModulosViewState extends State<ModulosView> {
             ),
           // Va después del PageView, así queda dibujada encima de él.
           PildoraModulo(texto: _modulos[_indice].nombre),
-          LogoPerfil(
-            alMantener: _abrirPerfil,
-            fotoUrl: _d.auth.obtenerFotoUrl(),
-          ),
+          _logoPerfil,
         ],
       ),
     );
