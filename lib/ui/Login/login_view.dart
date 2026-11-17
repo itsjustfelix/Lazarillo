@@ -1,5 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../../core/api_exception.dart';
 import '../../services/auth_service.dart';
 import '../logo_app.dart';
@@ -17,28 +19,29 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  /// Cuánto tiempo se queda el mensaje de error en pantalla.
   static const _duracionError = Duration(seconds: 4);
 
-  static const _acercarNombre = 10.0;
+  static const _acercarNombre = 26.0;
+
   bool _entrando = false;
   String? _error;
   Timer? _temporizadorError;
 
   Future<void> _entrar() async {
     if (_entrando) return;
+
     _entrando = true;
     _ocultarError();
     setState(() {});
+
     try {
       await widget.auth.loginConGoogle();
-      widget.onLogin(); // app.dart cambia a la pantalla principal
+      widget.onLogin();
     } on InicioCancelado {
-      // La persona cerró la ventana de Google a propósito: no se muestra nada.
+      // El usuario canceló el inicio de sesión.
     } on ApiException catch (e) {
       _mostrarError(e.message);
     } catch (e) {
-      debugPrint('Login: $e');
       _mostrarError('No pude iniciar sesión. Intenta de nuevo.');
     } finally {
       _entrando = false;
@@ -48,10 +51,15 @@ class _LoginViewState extends State<LoginView> {
 
   void _mostrarError(String mensaje) {
     _temporizadorError?.cancel();
+
     if (!mounted) return;
+
     setState(() => _error = mensaje);
+
     _temporizadorError = Timer(_duracionError, () {
-      if (mounted) setState(() => _error = null);
+      if (mounted) {
+        setState(() => _error = null);
+      }
     });
   }
 
@@ -82,6 +90,7 @@ class _LoginViewState extends State<LoginView> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const LogoApp(tamano: 160),
+
                       Transform.translate(
                         offset: const Offset(0, -_acercarNombre),
                         child: Semantics(
@@ -90,8 +99,10 @@ class _LoginViewState extends State<LoginView> {
                             'Lazarillo',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 40,
-                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Sora',
+                              fontSize: 38,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
                               color: ColoresApp.blanco,
                             ),
                           ),
@@ -101,6 +112,7 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
               ),
+
               if (_error != null)
                 Semantics(
                   liveRegion: true,
@@ -121,6 +133,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                 ),
+
               Semantics(
                 button: true,
                 liveRegion: true,

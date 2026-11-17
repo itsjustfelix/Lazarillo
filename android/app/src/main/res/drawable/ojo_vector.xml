@@ -1,0 +1,55 @@
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="240dp"
+    android:viewportWidth="240"
+    android:viewportHeight="240">
+
+    <!-- Parpados del ojo -->
+    <group
+        android:name="parpados"
+        android:pivotX="120"
+        android:pivotY="120"
+        android:scaleY="0.02">
+
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineCap="round"
+            android:pathData="M 30,120 C 65,46 175,46 210,120" />
+
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="6"
+            android:strokeLineCap="round"
+            android:pathData="M 30,120 C 65,194 175,194 210,120" />
+
+    </group>
+
+    <!-- Pupila y aros -->
+    <group
+        android:name="pupila"
+        android:pivotX="120"
+        android:pivotY="120"
+        android:scaleX="0.7"
+        android:scaleY="0.7">
+
+        <path
+            android:name="aro"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#387EF5"
+            android:strokeWidth="3"
+            android:strokeAlpha="0"
+            android:pathData="M 120,83 A 37,37 0,1 1,119.99 83 Z" />
+
+        <path
+            android:name="centro"
+            android:fillColor="#387EF5"
+            android:fillAlpha="0"
+            android:pathData="M 120,94 A 26,26 0,1 1,119.99 94 Z" />
+
+    </group>
+
+</vector>
