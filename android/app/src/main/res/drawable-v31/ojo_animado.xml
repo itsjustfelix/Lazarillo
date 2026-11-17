@@ -1,0 +1,21 @@
+
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ojo_vector">
+
+    <target
+        android:name="parpados"
+        android:animation="@animator/abrir_ojo_nativo" />
+
+    <target
+        android:name="pupila"
+        android:animation="@animator/crecer_pupila_nativa" />
+
+    <target
+        android:name="aro"
+        android:animation="@animator/mostrar_aro_nativo" />
+
+    <target
+        android:name="centro"
+        android:animation="@animator/mostrar_centro_nativo" />
+
+</animated-vector>
