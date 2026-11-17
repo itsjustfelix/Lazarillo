@@ -34,8 +34,11 @@ class AuthService {
   }
 
   /// Devuelve el nombre del usuario.
-  Future<String> loginConGoogle() async {
+  /// [alObtenerCredencial] se ejecuta solo cuando Google devuelve una
+  /// credencial válida, nunca si la persona cancela la selección.
+  Future<String> loginConGoogle({void Function()? alObtenerCredencial}) async {
     final credencial = await _google.obtenerCredencial();
+    alObtenerCredencial?.call();
     final sesion = await _autenticarEnBackend(credencial.idToken);
     await _storage.guardar(
       jwt: sesion.jwtToken,
