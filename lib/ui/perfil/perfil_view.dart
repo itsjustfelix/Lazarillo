@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/dependencias.dart';
 import '../../models/perfil_usuario.dart';
 import '../tema.dart';
+import 'boton_cerrar_sesion_cristal.dart';
 
 class PerfilView extends StatefulWidget {
   const PerfilView({
@@ -30,8 +32,6 @@ class _PerfilViewState extends State<PerfilView> {
   @override
   void initState() {
     super.initState();
-
-    // Anuncio para personas con discapacidad visual.
     unawaited(
       _d.voz.hablar(
         'Perfil de ${widget.perfil.nombre}. '
@@ -41,17 +41,18 @@ class _PerfilViewState extends State<PerfilView> {
     );
   }
 
-  // Confirma el cierre para evitar acciones accidentales.
+  /// El cierre real no cambia: se confirma primero, se anuncia y después
+  /// se delega al contenedor principal para eliminar la sesión.
   Future<void> _confirmarCierre() async {
     if (_cerrando) return;
 
     final confirmado = await showDialog<bool>(
       context: context,
-      builder: (context) {
+      builder: (dialogoContexto) {
         return AlertDialog(
           backgroundColor: ColoresApp.blanco,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           title: const Text(
             '¿Cerrar sesión?',
@@ -59,26 +60,36 @@ class _PerfilViewState extends State<PerfilView> {
               fontFamily: 'Sora',
               fontSize: 21,
               fontWeight: FontWeight.w600,
-              color: ColoresApp.fondoMensaje,
+              color: ColoresApp.textoPerfil,
             ),
           ),
           content: const Text(
             'Tendrás que iniciar sesión nuevamente '
             'para utilizar Lazarillo.',
-            style: TextStyle(fontSize: 17, color: ColoresApp.fondoMensaje),
+            style: TextStyle(
+              fontSize: 17,
+              color: ColoresApp.textoPerfil,
+            ),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              style: TextButton.styleFrom(foregroundColor: ColoresApp.primario),
+              onPressed: () => Navigator.of(dialogoContexto).pop(false),
+              style: TextButton.styleFrom(
+                foregroundColor: ColoresApp.primario,
+              ),
               child: const Text('Cancelar', style: TextStyle(fontSize: 17)),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: TextButton.styleFrom(foregroundColor: ColoresApp.error),
+              onPressed: () => Navigator.of(dialogoContexto).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: ColoresApp.error,
+              ),
               child: const Text(
                 'Cerrar sesión',
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -89,89 +100,91 @@ class _PerfilViewState extends State<PerfilView> {
     if (!mounted || confirmado != true) return;
 
     setState(() => _cerrando = true);
-
     try {
       await _d.voz.hablar('Cerrando sesión.');
     } catch (_) {
-      // Un error del TTS no debe bloquear el cierre.
+      // La voz no debe bloquear el cierre de sesión.
     }
-
-    if (mounted) {
-      widget.onCerrarSesion();
-    }
+    if (mounted) widget.onCerrarSesion();
   }
 
   @override
   Widget build(BuildContext context) {
-    final perfil = widget.perfil;
-
-    return Scaffold(
-      backgroundColor: ColoresApp.blanco,
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: ColoresApp.blanco,
+        systemNavigationBarDividerColor: ColoresApp.blanco,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarContrastEnforced: false,
+      ),
+      child: Scaffold(
+        // El fondo del sistema inferior es blanco. El morado queda reservado
+        // al encabezado y se extiende detrás de la barra de notificaciones.
+        backgroundColor: ColoresApp.blanco,
+        body: Column(
           children: [
-            // Encabezado con foto y nombre.
-            _construirEncabezado(perfil),
-
-            // Información de la cuenta.
+            ColoredBox(
+              color: ColoresApp.primario,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.paddingOf(context).top,
+                ),
+                child: _construirEncabezado(widget.perfil),
+              ),
+            ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Tu cuenta',
-                      style: TextStyle(
-                        fontFamily: 'Sora',
-                        fontSize: 21,
-                        fontWeight: FontWeight.w600,
-                        color: ColoresApp.fondoMensaje,
+              // El morado permanece detrás del ClipPath; de lo contrario,
+              // la curva se pierde contra el fondo blanco del Scaffold.
+              child: ColoredBox(
+                color: ColoresApp.primario,
+                child: ClipPath(
+                  clipper: const _CurvaSuperiorPerfil(),
+                  child: ColoredBox(
+                    color: ColoresApp.fondoPerfil,
+                    child: Padding(
+                      // El cuerpo empieza después de la curva ascendente.
+                      padding: const EdgeInsets.only(top: 48),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                12,
+                                24,
+                                16,
+                              ),
+                              child: _construirContenidoCuenta(),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              24,
+                              10,
+                              24,
+                              20,
+                            ),
+                            child: BotonCerrarSesionCristal(
+                              cerrando: _cerrando,
+                              alPresionar: _confirmarCierre,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    _construirTarjetaCuenta(),
-                  ],
+                  ),
                 ),
               ),
             ),
-
-            // Botón de cerrar sesión.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
-              child: SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: OutlinedButton.icon(
-                  onPressed: _cerrando ? null : _confirmarCierre,
-                  icon: _cerrando
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: ColoresApp.error,
-                          ),
-                        )
-                      : const Icon(Icons.logout_rounded, size: 26),
-                  label: Text(
-                    _cerrando ? 'Cerrando sesión...' : 'Cerrar sesión',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: ColoresApp.error,
-                    side: const BorderSide(color: ColoresApp.error, width: 1.5),
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                ),
-              ),
+            // Respeta el área de gestos de Android y evita un fondo morado
+            // o azulado detrás de la barra de navegación de Samsung.
+            Container(
+              height: MediaQuery.paddingOf(context).bottom,
+              color: ColoresApp.blanco,
             ),
           ],
         ),
@@ -179,47 +192,27 @@ class _PerfilViewState extends State<PerfilView> {
     );
   }
 
-  // Encabezado morado con foto y nombre.
   Widget _construirEncabezado(PerfilUsuario perfil) {
-    return Container(
-      width: double.infinity,
-
-      // CAMBIO 1:
-      // Reducimos el margen horizontal de 24 a 8.
-      // También acercamos ligeramente la fila al borde superior.
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 32),
-
-      decoration: const BoxDecoration(
-        color: ColoresApp.primario,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
-      ),
-
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
       child: Column(
         children: [
           Row(
             children: [
-              // CAMBIO 2:
-              // Eliminamos el padding interno del IconButton.
-              // Conservamos el área táctil de 48 x 48.
               SizedBox(
                 width: 48,
                 height: 48,
                 child: IconButton(
                   tooltip: 'Volver a los módulos',
                   padding: EdgeInsets.zero,
-                  alignment: Alignment.centerLeft,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   icon: const Icon(
                     Icons.arrow_back_rounded,
-                    size: 28,
                     color: ColoresApp.blanco,
+                    size: 28,
                   ),
                 ),
               ),
-
-              // Título centrado.
               const Expanded(
                 child: Text(
                   'Mi perfil',
@@ -232,88 +225,214 @@ class _PerfilViewState extends State<PerfilView> {
                   ),
                 ),
               ),
-
-              // Equilibra el espacio de la flecha
-              // para mantener el título centrado.
               const SizedBox(width: 48),
             ],
           ),
-
-          const SizedBox(height: 20),
-
+          const SizedBox(height: 13),
           _FotoPerfil(fotoUrl: perfil.fotoUrl),
-
-          const SizedBox(height: 18),
-
+          const SizedBox(height: 16),
           Semantics(
             header: true,
             child: Text(
               perfil.nombre,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontFamily: 'Sora',
-                fontSize: 26,
+                fontSize: 25,
                 fontWeight: FontWeight.w600,
                 color: ColoresApp.blanco,
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  // Tarjeta que muestra el estado de la cuenta.
-  Widget _construirTarjetaCuenta() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: ColoresApp.blanco,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: ColoresApp.primario.withValues(alpha: 0.15)),
-      ),
-      child: const Row(
-        children: [
-          Icon(
-            Icons.verified_user_outlined,
-            size: 32,
-            color: ColoresApp.primario,
-          ),
-
-          SizedBox(width: 16),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 11),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: ColoresApp.blanco.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Cuenta conectada',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w600,
-                    color: ColoresApp.fondoMensaje,
-                  ),
+                Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFFBAF7D8),
+                  size: 18,
                 ),
-
-                SizedBox(height: 4),
-
-                Text(
-                  'Sesión iniciada con Google',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: ColoresApp.fondoMensaje,
+                SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Conectado con Google',
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: ColoresApp.blanco,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 5),
         ],
       ),
     );
   }
+
+  Widget _construirContenidoCuenta() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Tu cuenta',
+                style: TextStyle(
+                  fontFamily: 'Sora',
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: ColoresApp.textoPerfil,
+                ),
+              ),
+            ),
+            Text(
+              'Información de acceso',
+              style: TextStyle(
+                fontSize: 12,
+                color: ColoresApp.textoPerfilSecundario,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(19),
+          decoration: BoxDecoration(
+            color: ColoresApp.blanco,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: ColoresApp.primario.withValues(alpha: 0.13),
+                blurRadius: 30,
+                offset: const Offset(0, 14),
+              ),
+              BoxShadow(
+                color: ColoresApp.negroCristal.withValues(alpha: 0.035),
+                blurRadius: 7,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: ColoresApp.fondoIconoCuenta,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.shield_outlined,
+                      color: ColoresApp.secundario,
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Cuenta activa',
+                          style: TextStyle(
+                            color: ColoresApp.textoPerfil,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          'Sesión iniciada con Google',
+                          style: TextStyle(
+                            color: ColoresApp.textoPerfilSecundario,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    size: 23,
+                    color: ColoresApp.cuentaActiva,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Divider(
+                height: 1,
+                thickness: 1,
+                color: ColoresApp.primario.withValues(alpha: 0.08),
+              ),
+              const SizedBox(height: 14),
+              const Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Proveedor de acceso',
+                      style: TextStyle(
+                        color: ColoresApp.textoPerfilSecundario,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'Google',
+                    style: TextStyle(
+                      color: ColoresApp.primario,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 }
 
-// Muestra la foto del usuario obtenida durante el login.
+/// El fondo claro asciende suavemente por el centro, sobre el encabezado.
+class _CurvaSuperiorPerfil extends CustomClipper<Path> {
+  const _CurvaSuperiorPerfil();
+
+  @override
+  Path getClip(Size size) {
+    return Path()
+      ..moveTo(0, 28)
+      ..quadraticBezierTo(size.width / 2, -16, size.width, 28)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+  }
+
+  @override
+  bool shouldReclip(covariant _CurvaSuperiorPerfil oldClipper) => false;
+}
+
+/// Foto de Google elevada con dos sombras y anillo violeta discreto.
 class _FotoPerfil extends StatelessWidget {
   const _FotoPerfil({required this.fotoUrl});
 
@@ -329,16 +448,28 @@ class _FotoPerfil extends StatelessWidget {
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(color: ColoresApp.blanco, width: 2),
+          color: ColoresApp.blanco.withValues(alpha: 0.22),
+          boxShadow: [
+            BoxShadow(
+              color: ColoresApp.negroCristal.withValues(alpha: 0.25),
+              blurRadius: 24,
+              offset: const Offset(0, 13),
+            ),
+            BoxShadow(
+              color: ColoresApp.secundario.withValues(alpha: 0.23),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: CircleAvatar(
-          radius: 52,
+          radius: 49,
           backgroundColor: ColoresApp.secundario,
           foregroundImage: tieneFoto ? NetworkImage(url) : null,
           onForegroundImageError: tieneFoto ? (error, pila) {} : null,
           child: const Icon(
             Icons.person_rounded,
-            size: 58,
+            size: 56,
             color: ColoresApp.blanco,
           ),
         ),

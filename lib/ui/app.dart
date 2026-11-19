@@ -77,14 +77,57 @@ class _LazarilloAppState extends State<LazarilloApp> {
       theme: TemaApp.claro,
       home: mostrarSplash
           ? SplashView(onTerminar: _alTerminarSplash)
-          : _haySesion
-          ? ModulosView(
-              dependencias: widget.dependencias,
-              onCerrarSesion: _cerrarSesion,
-            )
-          : LoginView(
-              auth: widget.dependencias.auth,
-              onLogin: _alIniciarSesion,
+          : Builder(
+              builder: (context) {
+                // Flutter dibuja la pantalla anterior mientras la siguiente
+                // aparece. Primero se desvanece una; luego entra la otra.
+                // No se retrasa la autenticación ni se altera la cámara.
+                final reducirMovimiento = MediaQuery.of(context).disableAnimations;
+                return ColoredBox(
+                  color: ColoresApp.primario,
+                  child: AnimatedSwitcher(
+                    duration: reducirMovimiento
+                        ? Duration.zero
+                        : const Duration(milliseconds: 350),
+                    switchOutCurve: const Interval(
+                      0.53,
+                      1.0,
+                      curve: Curves.easeInCubic,
+                    ),
+                    switchInCurve: const Interval(
+                      0.47,
+                      1.0,
+                      curve: Curves.easeOutCubic,
+                    ),
+                    transitionBuilder: (pantalla, animacion) {
+                      return FadeTransition(
+                        opacity: animacion,
+                        child: pantalla,
+                      );
+                    },
+                    layoutBuilder: (actual, anteriores) {
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          ...anteriores,
+                          if (actual != null) actual,
+                        ],
+                      );
+                    },
+                    child: _haySesion
+                        ? ModulosView(
+                            key: const ValueKey('modulos'),
+                            dependencias: widget.dependencias,
+                            onCerrarSesion: _cerrarSesion,
+                          )
+                        : LoginView(
+                            key: const ValueKey('login'),
+                            auth: widget.dependencias.auth,
+                            onLogin: _alIniciarSesion,
+                          ),
+                  ),
+                );
+              },
             ),
     );
   }
