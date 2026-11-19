@@ -136,49 +136,48 @@ class _PerfilViewState extends State<PerfilView> {
               ),
             ),
             Expanded(
-              // Conserva el morado detrás de la curva: el recorte vuelve a
-              // mostrar el contraste morado / fondo claro, como antes.
-              // El fondo blanco del sistema inferior se mantiene independiente.
+              // El morado permanece detrás del ClipPath; de lo contrario,
+              // la curva se pierde contra el fondo blanco del Scaffold.
               child: ColoredBox(
                 color: ColoresApp.primario,
                 child: ClipPath(
                   clipper: const _CurvaSuperiorPerfil(),
-                child: ColoredBox(
-                  color: ColoresApp.fondoPerfil,
-                  child: Padding(
-                    // El cuerpo empieza después de la curva ascendente.
-                    padding: const EdgeInsets.only(top: 48),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Expanded(
-                          child: SingleChildScrollView(
+                  child: ColoredBox(
+                    color: ColoresApp.fondoPerfil,
+                    child: Padding(
+                      // El cuerpo empieza después de la curva ascendente.
+                      padding: const EdgeInsets.only(top: 48),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                12,
+                                24,
+                                16,
+                              ),
+                              child: _construirContenidoCuenta(),
+                            ),
+                          ),
+                          Padding(
                             padding: const EdgeInsets.fromLTRB(
                               24,
-                              12,
+                              10,
                               24,
-                              16,
+                              20,
                             ),
-                            child: _construirContenidoCuenta(),
+                            child: BotonCerrarSesionCristal(
+                              cerrando: _cerrando,
+                              alPresionar: _confirmarCierre,
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            24,
-                            10,
-                            24,
-                            20,
-                          ),
-                          child: BotonCerrarSesionCristal(
-                            cerrando: _cerrando,
-                            alPresionar: _confirmarCierre,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
               ),
             ),
             // Respeta el área de gestos de Android y evita un fondo morado
