@@ -13,6 +13,13 @@ class ColoresApp {
   static const secundario = Color(0xFF387EF5); // el color secundario del logo
   static const blanco = Color(0xFFFFFFFF);
 
+  // ---- Acabado Liquid Glass (sin modificar los colores del logotipo) ----
+  static const negroCristal = Color(0xFF000000);
+  static const brilloOndaCristal = Color(0xFFB9E9FF);
+  static const desenfoqueCristal = 5.0;
+  static const tintePildoraCristal = 0.10;
+  static const tinteBotonGoogle = 0.25;
+
   // ---- Apoyo (no vienen del logo) ----
   /// Errores. Se muestran dentro de una caja blanca, donde este rojo oscuro
   /// se lee bien (sobre el morado casi no se vería).
