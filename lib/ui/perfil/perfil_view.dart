@@ -115,58 +115,73 @@ class _PerfilViewState extends State<PerfilView> {
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
+        systemNavigationBarColor: ColoresApp.blanco,
+        systemNavigationBarDividerColor: ColoresApp.blanco,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarContrastEnforced: false,
       ),
       child: Scaffold(
-        // El mismo morado llena el espacio detrás de la barra de estado.
-        backgroundColor: ColoresApp.primario,
-        body: SafeArea(
-          // No se cubren las zonas táctiles del sistema ni la barra superior.
-          child: Column(
-            children: [
-              _construirEncabezado(widget.perfil),
-              Expanded(
-                child: ClipPath(
-                  clipper: const _CurvaSuperiorPerfil(),
-                  child: ColoredBox(
-                    color: ColoresApp.fondoPerfil,
-                    child: Padding(
-                      // La curva es más alta en el centro: el contenido comienza
-                      // después de su punto más bajo para que no se corte.
-                      padding: const EdgeInsets.only(top: 48),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              padding: const EdgeInsets.fromLTRB(
-                                24,
-                                12,
-                                24,
-                                16,
-                              ),
-                              child: _construirContenidoCuenta(),
-                            ),
-                          ),
-                          Padding(
+        // El fondo del sistema inferior es blanco. El morado queda reservado
+        // al encabezado y se extiende detrás de la barra de notificaciones.
+        backgroundColor: ColoresApp.blanco,
+        body: Column(
+          children: [
+            ColoredBox(
+              color: ColoresApp.primario,
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.paddingOf(context).top,
+                ),
+                child: _construirEncabezado(widget.perfil),
+              ),
+            ),
+            Expanded(
+              child: ClipPath(
+                clipper: const _CurvaSuperiorPerfil(),
+                child: ColoredBox(
+                  color: ColoresApp.fondoPerfil,
+                  child: Padding(
+                    // El cuerpo empieza después de la curva ascendente.
+                    padding: const EdgeInsets.only(top: 48),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
                             padding: const EdgeInsets.fromLTRB(
                               24,
-                              10,
+                              12,
                               24,
-                              20,
+                              16,
                             ),
-                            child: BotonCerrarSesionCristal(
-                              cerrando: _cerrando,
-                              alPresionar: _confirmarCierre,
-                            ),
+                            child: _construirContenidoCuenta(),
                           ),
-                        ],
-                      ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            24,
+                            10,
+                            24,
+                            20,
+                          ),
+                          child: BotonCerrarSesionCristal(
+                            cerrando: _cerrando,
+                            alPresionar: _confirmarCierre,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            // Respeta el área de gestos de Android y evita un fondo morado
+            // o azulado detrás de la barra de navegación de Samsung.
+            SizedBox(
+              height: MediaQuery.paddingOf(context).bottom,
+              child: const ColoredBox(color: ColoresApp.blanco),
+            ),
+          ],
         ),
       ),
     );
