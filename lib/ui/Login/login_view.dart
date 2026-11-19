@@ -6,7 +6,7 @@ import '../../core/api_exception.dart';
 import '../../services/auth_service.dart';
 import '../logo_app.dart';
 import '../tema.dart';
-import 'icono_google.dart';
+import 'boton_google_cristal.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key, required this.auth, required this.onLogin});
@@ -143,54 +143,10 @@ class _LoginViewState extends State<LoginView> {
                   ),
                 ),
 
-              Semantics(
-                button: true,
-                liveRegion: true,
-                label: _procesandoSesion
-                    ? 'Iniciando sesión, espera un momento'
-                    : 'Iniciar sesión con Google',
-                child: SizedBox(
-                  height: 72,
-                  child: ElevatedButton(
-                    // Evita repetir el login, pero conserva la G mientras Google
-                    // muestra la selección de cuenta o si se cancela.
-                    onPressed: _entrando ? null : _entrar,
-                    style: ElevatedButton.styleFrom(
-                      disabledBackgroundColor: ColoresApp.blanco,
-                      disabledForegroundColor: ColoresApp.fondoMensaje,
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 200),
-                      child: Row(
-                        key: ValueKey<bool>(_procesandoSesion),
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (_procesandoSesion)
-                            const SizedBox(
-                              width: 28,
-                              height: 28,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                color: ColoresApp.primario,
-                              ),
-                            )
-                          else
-                            const IconoGoogle(tamano: 28),
-                          const SizedBox(width: 12),
-                          Text(
-                            _procesandoSesion
-                                ? 'Iniciando sesión...'
-                                : 'Entrar con Google',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              color: ColoresApp.fondoMensaje,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              BotonGoogleCristal(
+                procesando: _procesandoSesion,
+                habilitado: !_entrando,
+                alPresionar: _entrar,
               ),
             ],
           ),
