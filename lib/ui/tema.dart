@@ -20,6 +20,16 @@ class ColoresApp {
   static const tintePildoraCristal = 0.10;
   static const tinteBotonGoogle = 0.25;
 
+  // ---- Perfil: superficies elevadas y salida con cristal rojizo ----
+  static const fondoPerfil = Color(0xFFF5F3FA);
+  static const textoPerfil = Color(0xFF24203B);
+  static const textoPerfilSecundario = Color(0xFF777388);
+  static const fondoIconoCuenta = Color(0xFFEBF1FF);
+  static const cuentaActiva = Color(0xFF249E70);
+  static const rojoCristalSalir = Color(0xFFBC3653);
+  static const textoCristalSalir = Color(0xFF86263E);
+  static const tinteCristalSalir = 0.22;
+
   // ---- Apoyo (no vienen del logo) ----
   /// Errores. Se muestran dentro de una caja blanca, donde este rojo oscuro
   /// se lee bien (sobre el morado casi no se vería).
