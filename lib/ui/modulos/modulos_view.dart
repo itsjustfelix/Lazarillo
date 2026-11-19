@@ -16,10 +16,11 @@ import 'pildora_modulo.dart';
 /// Nombre y explicación de un módulo (lo que se ve en la píldora y lo que
 /// se dice en voz alta al llegar a él).
 class _Modulo {
-  const _Modulo(this.nombre, this.instruccion);
+  const _Modulo(this.nombre, this.instruccion, this.icono);
 
   final String nombre;
   final String instruccion;
+  final IconData icono;
 }
 
 /// Contenedor de los tres módulos. Hace tres cosas:
@@ -49,14 +50,20 @@ class ModulosView extends StatefulWidget {
 class _ModulosViewState extends State<ModulosView> {
   /// En el orden en que aparecen, de izquierda a derecha.
   static const _modulos = [
-    _Modulo('Buscar objetos', 'Toca dos veces y di qué quieres buscar.'),
+    _Modulo(
+      'Buscar objetos',
+      'Toca dos veces y di qué quieres buscar.',
+      Icons.search_rounded,
+    ),
     _Modulo(
       'Describir escena',
       'Toca dos veces para describir lo que tienes enfrente.',
+      Icons.center_focus_strong_rounded,
     ),
     _Modulo(
       'Leer texto',
       'Toca dos veces para leer el texto que tienes enfrente.',
+      Icons.document_scanner_rounded,
     ),
   ];
 
@@ -178,7 +185,10 @@ class _ModulosViewState extends State<ModulosView> {
               ],
             ),
           // Va después del PageView, así queda dibujada encima de él.
-          PildoraModulo(texto: _modulos[_indice].nombre),
+          PildoraModulo(
+            texto: _modulos[_indice].nombre,
+            icono: _modulos[_indice].icono,
+          ),
           _logoPerfil,
         ],
       ),
