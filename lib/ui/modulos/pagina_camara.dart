@@ -26,6 +26,7 @@ class PaginaCamara extends StatelessWidget {
     return Semantics(
       button: true,
       label: etiqueta,
+      value: ocupado ? 'Procesando' : null,
       onTap: alActivar,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -34,7 +35,8 @@ class PaginaCamara extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             CamaraPantallaCompleta(controlador: camara),
-            if (ocupado) const Center(child: CircularProgressIndicator()),
+            // La actividad se anuncia por voz o vibración desde cada módulo.
+            // No tapamos la cámara con un indicador circular.
             if (mensaje != null)
               Center(
                 child: Container(
