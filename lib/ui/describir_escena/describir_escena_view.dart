@@ -90,7 +90,6 @@ class _DescribirEscenaViewState extends State<DescribirEscenaView> {
   @override
   Widget build(BuildContext context) {
     return PaginaCamara(
-      camara: widget.camara,
       etiqueta:
           'Describir escena. Toca dos veces para describir '
           'lo que tienes enfrente.',
