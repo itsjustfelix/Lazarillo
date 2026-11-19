@@ -75,6 +75,7 @@ class _ModulosViewState extends State<ModulosView> {
   );
   CameraController? _camara;
   int _indice = _paginaInicial;
+  bool _cerrandoSesion = false;
   late final LogoPerfil _logoPerfil;
 
   Dependencias get _d => widget.dependencias;
@@ -146,7 +147,7 @@ class _ModulosViewState extends State<ModulosView> {
         pageBuilder: (context, animacion, animacionSecundaria) => PerfilView(
           dependencias: _d,
           perfil: perfil,
-          onCerrarSesion: widget.onCerrarSesion,
+          onCerrarSesion: _cerrarSesionDesdePerfil,
         ),
         transitionsBuilder:
             (context, animacion, animacionSecundaria, contenido) {
@@ -166,8 +167,18 @@ class _ModulosViewState extends State<ModulosView> {
       ),
     );
     // Si se cerró la sesión desde el perfil, este contenedor ya no existe.
-    if (!mounted) return;
+    // Al cerrar sesión, Navigator.popUntil también finaliza la ruta del
+    // perfil. No hay que anunciar un módulo que ya se está abandonando.
+    if (!mounted || _cerrandoSesion) return;
     unawaited(_d.voz.hablar(_anuncio(_modulos[_indice])));
+  }
+
+  /// Marca el cierre antes de que el navegador cierre la ruta del perfil.
+  /// Así el Future de _abrirPerfil no vuelve a anunciar el módulo activo.
+  void _cerrarSesionDesdePerfil() {
+    if (_cerrandoSesion) return;
+    _cerrandoSesion = true;
+    widget.onCerrarSesion();
   }
 
   @override
