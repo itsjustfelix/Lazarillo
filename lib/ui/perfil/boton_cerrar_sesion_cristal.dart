@@ -203,8 +203,9 @@ class _BotonCerrarSesionCristalState extends State<BotonCerrarSesionCristal>
                                     Text(
                                       'Cerrar sesión',
                                       style: TextStyle(
+                                        fontFamily: 'Sora',
                                         fontSize: 19,
-                                        fontWeight: FontWeight.w700,
+                                        fontWeight: FontWeight.w600,
                                         color: ColoresApp.textoCristalSalir,
                                       ),
                                     ),
