@@ -143,24 +143,26 @@ class _ModulosViewState extends State<ModulosView> {
         // El fade evita el deslizamiento y los destellos de la ruta Material.
         transitionDuration: const Duration(milliseconds: 280),
         reverseTransitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (context, animacion, animacionSecundaria) =>
-            PerfilView(
+        pageBuilder: (context, animacion, animacionSecundaria) => PerfilView(
           dependencias: _d,
           perfil: perfil,
           onCerrarSesion: widget.onCerrarSesion,
         ),
-        transitionsBuilder: (context, animacion, animacionSecundaria, contenido) {
-          final reducirMovimiento = MediaQuery.of(context).disableAnimations;
-          if (reducirMovimiento) return contenido;
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animacion,
-              curve: Curves.easeInOut,
-              reverseCurve: Curves.easeInOut,
-            ),
-            child: contenido,
-          );
-        },
+        transitionsBuilder:
+            (context, animacion, animacionSecundaria, contenido) {
+              final reducirMovimiento = MediaQuery.of(
+                context,
+              ).disableAnimations;
+              if (reducirMovimiento) return contenido;
+              return FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animacion,
+                  curve: Curves.easeInOut,
+                  reverseCurve: Curves.easeInOut,
+                ),
+                child: contenido,
+              );
+            },
       ),
     );
     // Si se cerró la sesión desde el perfil, este contenedor ya no existe.
@@ -186,17 +188,14 @@ class _ModulosViewState extends State<ModulosView> {
         fit: StackFit.expand,
         children: [
           if (camara == null)
-            const ColoredBox(
+            ColoredBox(
               color: ColoresApp.fondoCamara,
               child: Center(
                 child: Semantics(
                   liveRegion: true,
-                  child: Text(
+                  child: const Text(
                     'Preparando cámara…',
-                    style: TextStyle(
-                      color: ColoresApp.blanco,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(color: ColoresApp.blanco, fontSize: 16),
                   ),
                 ),
               ),
