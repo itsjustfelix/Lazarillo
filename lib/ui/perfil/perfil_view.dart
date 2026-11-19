@@ -136,8 +136,13 @@ class _PerfilViewState extends State<PerfilView> {
               ),
             ),
             Expanded(
-              child: ClipPath(
-                clipper: const _CurvaSuperiorPerfil(),
+              // Conserva el morado detrás de la curva: el recorte vuelve a
+              // mostrar el contraste morado / fondo claro, como antes.
+              // El fondo blanco del sistema inferior se mantiene independiente.
+              child: ColoredBox(
+                color: ColoresApp.primario,
+                child: ClipPath(
+                  clipper: const _CurvaSuperiorPerfil(),
                 child: ColoredBox(
                   color: ColoresApp.fondoPerfil,
                   child: Padding(
@@ -173,6 +178,7 @@ class _PerfilViewState extends State<PerfilView> {
                     ),
                   ),
                 ),
+              ),
               ),
             ),
             // Respeta el área de gestos de Android y evita un fondo morado
