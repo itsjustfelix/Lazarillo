@@ -213,6 +213,7 @@ class _BotonGoogleCristalState extends State<BotonGoogleCristal>
                                           'Entrar con Google',
                                           maxLines: 1,
                                           style: TextStyle(
+                                            fontFamily: 'Sora',
                                             color: ColoresApp.blanco,
                                             fontSize: 22,
                                             fontWeight: FontWeight.w600,
