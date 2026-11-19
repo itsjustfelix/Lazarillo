@@ -186,7 +186,21 @@ class _ModulosViewState extends State<ModulosView> {
         fit: StackFit.expand,
         children: [
           if (camara == null)
-            const Center(child: CircularProgressIndicator())
+            const ColoredBox(
+              color: ColoresApp.fondoCamara,
+              child: Center(
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    'Preparando cámara…',
+                    style: TextStyle(
+                      color: ColoresApp.blanco,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            )
           else
             PageView(
               controller: _paginas,
