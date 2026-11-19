@@ -135,7 +135,6 @@ class _BuscarObjetoViewState extends State<BuscarObjetoView> {
   @override
   Widget build(BuildContext context) {
     return PaginaCamara(
-      camara: widget.camara,
       etiqueta:
           'Buscar objetos. Toca dos veces y di qué quieres buscar. '
           'Toca dos veces de nuevo para detener.',

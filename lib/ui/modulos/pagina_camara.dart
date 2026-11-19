@@ -1,19 +1,17 @@
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import '../tema.dart';
-import 'camara_pantalla_completa.dart';
 
+/// Capa de interacción transparente: la cámara se dibuja una sola vez
+/// detrás del PageView, desde ModulosView.
 class PaginaCamara extends StatelessWidget {
   const PaginaCamara({
     super.key,
-    required this.camara,
     required this.etiqueta,
     required this.alActivar,
     this.ocupado = false,
     this.mensaje,
   });
 
-  final CameraController camara;
   final String etiqueta;
   final VoidCallback alActivar;
   final bool ocupado;
@@ -34,7 +32,6 @@ class PaginaCamara extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            CamaraPantallaCompleta(controlador: camara),
             // La actividad se anuncia por voz o vibración desde cada módulo.
             // No tapamos la cámara con un indicador circular.
             if (mensaje != null)

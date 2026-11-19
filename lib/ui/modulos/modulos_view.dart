@@ -10,6 +10,7 @@ import '../describir_escena/describir_escena_view.dart';
 import '../extraer_texto/extraer_texto_view.dart';
 import '../perfil/perfil_view.dart';
 import '../tema.dart';
+import 'camara_pantalla_completa.dart';
 import 'logo_perfil.dart';
 import 'pildora_modulo.dart';
 
@@ -26,7 +27,7 @@ class _Modulo {
 /// Contenedor de los tres módulos. Hace tres cosas:
 ///  1. Se queda con UNA sola cámara y se la presta a los módulos (Android no
 ///     deja abrir la misma cámara dos veces a la vez).
-///  2. Deja deslizar entre módulos (PageView).
+///  2. Mantiene una sola vista previa fija y cambia entre módulos (PageView).
 ///  3. Dibuja encima de todos la píldora fija y el logo del perfil.
 class ModulosView extends StatefulWidget {
   const ModulosView({
@@ -75,6 +76,7 @@ class _ModulosViewState extends State<ModulosView> {
   );
   CameraController? _camara;
   int _indice = _paginaInicial;
+  bool _cerrandoSesion = false;
   late final LogoPerfil _logoPerfil;
 
   Dependencias get _d => widget.dependencias;
@@ -146,7 +148,7 @@ class _ModulosViewState extends State<ModulosView> {
         pageBuilder: (context, animacion, animacionSecundaria) => PerfilView(
           dependencias: _d,
           perfil: perfil,
-          onCerrarSesion: widget.onCerrarSesion,
+          onCerrarSesion: _cerrarSesionDesdePerfil,
         ),
         transitionsBuilder:
             (context, animacion, animacionSecundaria, contenido) {
@@ -166,8 +168,18 @@ class _ModulosViewState extends State<ModulosView> {
       ),
     );
     // Si se cerró la sesión desde el perfil, este contenedor ya no existe.
-    if (!mounted) return;
+    // Al cerrar sesión, Navigator.popUntil también finaliza la ruta del
+    // perfil. No hay que anunciar un módulo que ya se está abandonando.
+    if (!mounted || _cerrandoSesion) return;
     unawaited(_d.voz.hablar(_anuncio(_modulos[_indice])));
+  }
+
+  /// Marca el cierre antes de que el navegador cierre la ruta del perfil.
+  /// Así el Future de _abrirPerfil no vuelve a anunciar el módulo activo.
+  void _cerrarSesionDesdePerfil() {
+    if (_cerrandoSesion) return;
+    _cerrandoSesion = true;
+    widget.onCerrarSesion();
   }
 
   @override
@@ -201,17 +213,25 @@ class _ModulosViewState extends State<ModulosView> {
               ),
             )
           else
-            PageView(
-              controller: _paginas,
-              onPageChanged: _alCambiarPagina,
+            Stack(
+              fit: StackFit.expand,
               children: [
-                BuscarObjetoView(dependencias: _d, camara: camara),
-                DescribirEscenaView(
-                  dependencias: _d,
-                  camara: camara,
-                  onSesionExpirada: widget.onCerrarSesion,
+                // Una sola vista previa fija: el PageView superpuesto
+                // recibe los swipes y los dobles toques, sin mover la cámara.
+                CamaraPantallaCompleta(controlador: camara),
+                PageView(
+                  controller: _paginas,
+                  onPageChanged: _alCambiarPagina,
+                  children: [
+                    BuscarObjetoView(dependencias: _d, camara: camara),
+                    DescribirEscenaView(
+                      dependencias: _d,
+                      camara: camara,
+                      onSesionExpirada: widget.onCerrarSesion,
+                    ),
+                    ExtraerTextoView(dependencias: _d, camara: camara),
+                  ],
                 ),
-                ExtraerTextoView(dependencias: _d, camara: camara),
               ],
             ),
           // Va después del PageView, así queda dibujada encima de él.

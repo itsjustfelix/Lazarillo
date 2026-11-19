@@ -102,7 +102,6 @@ class _ExtraerTextoViewState extends State<ExtraerTextoView> {
               'y escucharla.';
 
     return PaginaCamara(
-      camara: widget.camara,
       etiqueta: etiqueta,
       alActivar: _alActivar,
       ocupado: _estado == _Estado.procesando,
