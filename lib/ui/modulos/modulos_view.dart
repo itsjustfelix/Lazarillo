@@ -138,12 +138,29 @@ class _ModulosViewState extends State<ModulosView> {
     if (!mounted) return;
 
     await navegador.push(
-      MaterialPageRoute<void>(
-        builder: (_) => PerfilView(
+      PageRouteBuilder<void>(
+        // El perfil es completamente opaco cuando termina la transición.
+        // El fade evita el deslizamiento y los destellos de la ruta Material.
+        transitionDuration: const Duration(milliseconds: 280),
+        reverseTransitionDuration: const Duration(milliseconds: 280),
+        pageBuilder: (context, animacion, animacionSecundaria) =>
+            PerfilView(
           dependencias: _d,
           perfil: perfil,
           onCerrarSesion: widget.onCerrarSesion,
         ),
+        transitionsBuilder: (context, animacion, animacionSecundaria, contenido) {
+          final reducirMovimiento = MediaQuery.of(context).disableAnimations;
+          if (reducirMovimiento) return contenido;
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animacion,
+              curve: Curves.easeInOut,
+              reverseCurve: Curves.easeInOut,
+            ),
+            child: contenido,
+          );
+        },
       ),
     );
     // Si se cerró la sesión desde el perfil, este contenedor ya no existe.
