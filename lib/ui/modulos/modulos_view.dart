@@ -220,17 +220,17 @@ class _ModulosViewState extends State<ModulosView> {
                 // recibe los swipes y los dobles toques, sin mover la cámara.
                 CamaraPantallaCompleta(controlador: camara),
                 PageView(
-              controller: _paginas,
-              onPageChanged: _alCambiarPagina,
-              children: [
-                BuscarObjetoView(dependencias: _d, camara: camara),
-                DescribirEscenaView(
-                  dependencias: _d,
-                  camara: camara,
-                  onSesionExpirada: widget.onCerrarSesion,
-                ),
-                ExtraerTextoView(dependencias: _d, camara: camara),
-              ],
+                  controller: _paginas,
+                  onPageChanged: _alCambiarPagina,
+                  children: [
+                    BuscarObjetoView(dependencias: _d, camara: camara),
+                    DescribirEscenaView(
+                      dependencias: _d,
+                      camara: camara,
+                      onSesionExpirada: widget.onCerrarSesion,
+                    ),
+                    ExtraerTextoView(dependencias: _d, camara: camara),
+                  ],
                 ),
               ],
             ),
