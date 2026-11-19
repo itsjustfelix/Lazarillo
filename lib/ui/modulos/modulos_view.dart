@@ -10,6 +10,7 @@ import '../describir_escena/describir_escena_view.dart';
 import '../extraer_texto/extraer_texto_view.dart';
 import '../perfil/perfil_view.dart';
 import '../tema.dart';
+import 'camara_pantalla_completa.dart';
 import 'logo_perfil.dart';
 import 'pildora_modulo.dart';
 
@@ -26,7 +27,7 @@ class _Modulo {
 /// Contenedor de los tres módulos. Hace tres cosas:
 ///  1. Se queda con UNA sola cámara y se la presta a los módulos (Android no
 ///     deja abrir la misma cámara dos veces a la vez).
-///  2. Deja deslizar entre módulos (PageView).
+///  2. Mantiene una sola vista previa fija y cambia entre módulos (PageView).
 ///  3. Dibuja encima de todos la píldora fija y el logo del perfil.
 class ModulosView extends StatefulWidget {
   const ModulosView({
@@ -211,7 +212,10 @@ class _ModulosViewState extends State<ModulosView> {
                 ),
               ),
             )
-          else
+          else ...[
+            // Un único CameraPreview inmóvil. El PageView de encima solo
+            // administra los gestos y el módulo activo, nunca la imagen.
+            CamaraPantallaCompleta(controlador: camara),
             PageView(
               controller: _paginas,
               onPageChanged: _alCambiarPagina,
@@ -225,6 +229,7 @@ class _ModulosViewState extends State<ModulosView> {
                 ExtraerTextoView(dependencias: _d, camara: camara),
               ],
             ),
+          ],
           // Va después del PageView, así queda dibujada encima de él.
           PildoraModulo(
             texto: _modulos[_indice].nombre,
