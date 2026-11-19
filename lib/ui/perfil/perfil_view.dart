@@ -177,9 +177,9 @@ class _PerfilViewState extends State<PerfilView> {
             ),
             // Respeta el área de gestos de Android y evita un fondo morado
             // o azulado detrás de la barra de navegación de Samsung.
-            SizedBox(
+            Container(
               height: MediaQuery.paddingOf(context).bottom,
-              child: const ColoredBox(color: ColoresApp.blanco),
+              color: ColoresApp.blanco,
             ),
           ],
         ),
