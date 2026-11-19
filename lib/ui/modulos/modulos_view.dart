@@ -212,11 +212,14 @@ class _ModulosViewState extends State<ModulosView> {
                 ),
               ),
             )
-          else ...[
-            // Un único CameraPreview inmóvil. El PageView de encima solo
-            // administra los gestos y el módulo activo, nunca la imagen.
-            CamaraPantallaCompleta(controlador: camara),
-            PageView(
+          else
+            Stack(
+              fit: StackFit.expand,
+              children: [
+                // Una sola vista previa fija: el PageView superpuesto
+                // recibe los swipes y los dobles toques, sin mover la cámara.
+                CamaraPantallaCompleta(controlador: camara),
+                PageView(
               controller: _paginas,
               onPageChanged: _alCambiarPagina,
               children: [
@@ -228,8 +231,9 @@ class _ModulosViewState extends State<ModulosView> {
                 ),
                 ExtraerTextoView(dependencias: _d, camara: camara),
               ],
+                ),
+              ],
             ),
-          ],
           // Va después del PageView, así queda dibujada encima de él.
           PildoraModulo(
             texto: _modulos[_indice].nombre,
