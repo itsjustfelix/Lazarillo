@@ -1,17 +1,23 @@
-# lazarillo
+<div align="center">
 
-A new Flutter project.
+# Lazarillo
 
-## Getting Started
+### Una mirada al mundo a través de la tecnología
 
-This project is a starting point for a Flutter application.
+**Aplicación móvil de asistencia visual para personas con discapacidad visual, desarrollada con Flutter e inteligencia artificial.**
 
-A few resources to get you started if this is your first Flutter project:
+</div>
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Descripción
+
+**Lazarillo** es una aplicación móvil desarrollada para facilitar la interacción de personas con discapacidad visual con su entorno mediante el uso de inteligencia artificial, visión por computadora y tecnologías de reconocimiento y síntesis de voz.
+
+La aplicación permite reconocer objetos, describir escenas del entorno y leer textos impresos utilizando la cámara de un dispositivo móvil.
+
+Su interfaz está diseñada para ofrecer una experiencia sencilla y accesible, priorizando la interacción mediante gestos, instrucciones por voz y retroalimentación háptica.
+
+El objetivo de Lazarillo es proporcionar una herramienta tecnológica de apoyo que contribuya a mejorar la autonomía de sus usuarios en diferentes actividades cotidianas.
+
+---
